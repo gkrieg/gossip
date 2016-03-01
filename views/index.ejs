@@ -3,7 +3,8 @@
 <% if (messages.length > 0) { %>
 	<ul class="list-group">
 	<% for (i in messages) { %>
-		<li class='list-group-item'><%= messages[i].Rumor.Text %></li>
+		<li class='list-group-item'><h4 class='list-group-item-heading'><%=messages[i].Rumor.Text %></h4>
+		<p class="list-group-item-text"><%=messages[i].Rumor.Originator%></p></li>
 	<% } %>
 	</ul>
 <% } %>
