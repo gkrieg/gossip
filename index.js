@@ -29,25 +29,18 @@ app.listen(port, function(){
 
 var id = uuid.v4();
 
-var neighbors = [{
-    "url": 'http://localhost:3000/gossip',
-    "name": 'Sam'
-}];
-var rumors = [{"Rumor": {"MessageID": "ABCD-1234-ABCD-1234-ABCD-1234:5" ,
-                "Originator": "Phil",
-                "Text": "Hello World!"},
-                'EndPoint': "https://example.com/gossip/13244"
-                }];
+var neighbors = [];
+var rumors = [];
 var wants = {};
 
 var nextid = 0;
 
 var recursive = function() {
     sendMsg();
-    setTimeout(recursive, 1000);
+    setTimeout(recursive, 100);
 };
 
-setTimeout(recursive, 1000);
+setTimeout(recursive, 100);
 
 function getPeer(state){
     var rand = Math.floor(Math.random() * neighbors.length);
@@ -55,6 +48,9 @@ function getPeer(state){
 }
 
 function prepareRumor(peer) {
+    if (rumors.length === 0) {
+        return undefined;
+    }
     var rand = Math.floor(Math.random() * (rumors.length));
     var rumor = rumors[rand];
     var peerwant = wants[peer.url];
@@ -104,16 +100,17 @@ function prepareMsg(peer) {
 
 function sendMsg() {
     var peer = getPeer();
-    var message = prepareMsg(peer);
-    if (message !== undefined) {
-        request.post({
-        headers: {'content-type' : 'application/json'},
-        url: peer.url,
-         body: JSON.stringify(message)
-         }, function(error, response, body){
-    });
+    if (peer != undefined) {
+        var message = prepareMsg(peer);
+        if (message !== undefined) {
+            request.post({
+            headers: {'content-type' : 'application/json'},
+            url: peer.url,
+             body: JSON.stringify(message)
+             }, function(error, response, body){
+             });
+        }
     }
-
 }
 
 app.get('/', function(req,res) {
@@ -155,7 +152,6 @@ app.post('/addPeer', function(req, res){
 app.post('/gossip', function(req,res) {
     var message = req.body;
     if (message.Rumor !== undefined) {
-        console.log("rumor", "I got a rumor!", message.Rumor);
         for (var i in rumors) {
             if (rumors[i].Rumor.MessageID === message.Rumor.MessageID) {
                 return;
@@ -163,7 +159,6 @@ app.post('/gossip', function(req,res) {
         }
         rumors.push(message);
     } else if (message.Want !== undefined) {
-        console.log("wants",wants);
         wants[message.EndPoint] = message
     }
 });
