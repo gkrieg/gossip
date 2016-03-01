@@ -39,11 +39,7 @@ var rumors = [{"Rumor": {"MessageID": "ABCD-1234-ABCD-1234-ABCD-1234:5" ,
                 'EndPoint': "https://example.com/gossip/13244"
                 }];
 var wants = {};
-var receivedMessages = [{"Rumor": {"MessageID": "ABCD-1234-ABCD-1234-ABCD-1234:5" ,
-                "Originator": "Phil",
-                "Text": "Hello World!"},
-                'EndPoint': "https://example.com/gossip/13244"
-                }];
+
 var nextid = 0;
 
 var recursive = function() {
@@ -59,22 +55,23 @@ function getPeer(state){
 }
 
 function prepareRumor(peer) {
-    var rand = Math.floor(Math.random() * rumors.length);
+    var rand = Math.floor(Math.random() * (rumors.length));
     var rumor = rumors[rand];
     var peerwant = wants[peer.url];
-    if (peerwant === undefined) {
-        if (rumor.Rumor.MessageID.split(':')[1] !== '0') {
-            return undefined;
-        } else {
+    if (peerwant === undefined ) {
+        if (rumor.Rumor.MessageID.split(':')[1] === '0') {
             return rumor;
+        } else {
+            return undefined;
         }
+
     } else {
-        console.log("messageid",rumor.Rumor.MessageID.split(':')[0]);
-        console.log("other thing", peerwant.Want[rumor.Rumor.MessageID.split(':')[0]]);
-        if (peerwant.Want[rumor.Rumor.MessageID.split(':')[0]] == undefined) {
+        if (peerwant.Want[rumor.Rumor.MessageID.split(':')[0]] == undefined && rumor.Rumor.MessageID.split(':')[1] === '0') {
             return rumor;
-        } else {
+        } else if (parseInt(peerwant.Want[rumor.Rumor.MessageID.split(':')[0]]) >= parseInt(rumor.Rumor.MessageID.split(':')[1])){
             return undefined;
+        } else {
+            return rumor;
         }
     }
 }
@@ -114,7 +111,6 @@ function sendMsg() {
         url: peer.url,
          body: JSON.stringify(message)
          }, function(error, response, body){
-            console.log(body);
     });
     }
 
@@ -142,26 +138,24 @@ app.post('/sendMessage', function(req,res) {
         "EndPoint": url
     };
     rumors.push(constructedMessage);
-    receivedMessages.push(constructedMessage);
-    console.log(rumors);
     res.redirect('/')
     res.render('index', { id: id, messages: rumors});
 });
 
 app.post('/addPeer', function(req, res){
 
-    console.log('got a new peer');
     var neighbor = {
         "url": req.body.url,
         "name": req.body.name
     };
     neighbors.push(neighbor);
-  res.render('index', { id: id, messages: rumors });
+  res.render('index', { id: id, messages: rumors});
 });
 
 app.post('/gossip', function(req,res) {
     var message = req.body;
     if (message.Rumor !== undefined) {
+        console.log("rumor", "I got a rumor!", message.Rumor);
         for (var i in rumors) {
             if (rumors[i].Rumor.MessageID === message.Rumor.MessageID) {
                 return;
