@@ -156,7 +156,7 @@ app.post('/addPeer', function(req, res){
         "name": req.body.name
     };
     neighbors.push(neighbor);
-  res.render('index', { id: id, messages: receivedMessages });
+  res.render('index', { id: id, messages: rumors });
 });
 
 app.post('/gossip', function(req,res) {
