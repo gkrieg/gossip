@@ -1,5 +1,4 @@
 var express = require('express');
-var sleep = require('sleep');
 var request = require('request');
 var uuid = require('node-uuid');
 var expressLayouts = require('express-ejs-layouts');
@@ -152,6 +151,15 @@ app.post('/addPeer', function(req, res){
 app.post('/gossip', function(req,res) {
     var message = req.body;
     if (message.Rumor !== undefined) {
+        var check = false;
+        for (var j in neighbors) {
+            if (neighbors[j].url === message.EndPoint) {
+                check = true;
+            }
+        }
+        if (check == false) {
+            neighbors.push({name: message.Rumor.MessageID.split(':')[0], url: message.EndPoint})
+        }
         for (var i in rumors) {
             if (rumors[i].Rumor.MessageID === message.Rumor.MessageID) {
                 return;
@@ -159,6 +167,15 @@ app.post('/gossip', function(req,res) {
         }
         rumors.push(message);
     } else if (message.Want !== undefined) {
+        var check = false;
+        for (var j in neighbors) {
+            if (neighbors[j].url === message.EndPoint) {
+                check = true;
+            }
+        }
+        if (check == false) {
+            neighbors.push({name: message.Want[message.Want.keys()[0]], url: message.Want.EndPoint})
+        }
         wants[message.EndPoint] = message
     }
 });
